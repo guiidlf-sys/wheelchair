@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import type { SelectedModel } from './types';
-import HomeScreen from './components/HomeScreen';
-import CatalogScreen from './components/CatalogScreen';
-import EditorScreen from './components/EditorScreen';
-
-type Screen = 'home' | 'catalog';
+import { HashRouter, Route, Routes } from 'react-router-dom';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import CataloguePage from './pages/CataloguePage';
+import PersonalizationPage from './pages/PersonalizationPage';
+import AboutPage from './pages/AboutPage';
 
 function App() {
-  const [screen, setScreen] = useState<Screen>('home');
-  const [model, setModel] = useState<SelectedModel | null>(null);
-
-  if (model) {
-    return <EditorScreen model={model} onBack={() => setModel(null)} />;
-  }
-
-  if (screen === 'catalog') {
-    return <CatalogScreen onSelect={setModel} onBack={() => setScreen('home')} />;
-  }
-
-  return <HomeScreen onStart={() => setScreen('catalog')} />;
+  return (
+    <HashRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/catalogue" element={<CataloguePage />} />
+          <Route path="/personnalisation" element={<PersonalizationPage />} />
+          <Route path="/a-propos" element={<AboutPage />} />
+          <Route path="*" element={<HomePage />} />
+        </Route>
+      </Routes>
+    </HashRouter>
+  );
 }
 
 export default App;

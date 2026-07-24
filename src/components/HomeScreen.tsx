@@ -1,5 +1,6 @@
 interface Props {
   onStart: () => void;
+  onBrowse: () => void;
 }
 
 const STEPS = [
@@ -17,7 +18,7 @@ const STEPS = [
   },
 ];
 
-export default function HomeScreen({ onStart }: Props) {
+export default function HomeScreen({ onStart, onBrowse }: Props) {
   return (
     <div className="home-screen">
       <section className="home-hero">
@@ -26,9 +27,14 @@ export default function HomeScreen({ onStart }: Props) {
           Prépare une demande claire et visuelle avant d’aller voir un fabricant : choisis un fauteuil, indique
           les modifications que tu veux, et repars avec un fichier prêt à partager.
         </p>
-        <button type="button" className="cta" onClick={onStart}>
-          Commencer
-        </button>
+        <div className="home-actions">
+          <button type="button" className="cta" onClick={onStart}>
+            Commencer la personnalisation
+          </button>
+          <button type="button" className="secondary" onClick={onBrowse}>
+            Voir le catalogue
+          </button>
+        </div>
       </section>
 
       <section className="home-steps">

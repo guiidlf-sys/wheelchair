@@ -66,7 +66,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
     <div className="editor-screen">
       <header className="editor-header">
         <button type="button" className="secondary" onClick={onBack}>
-          ← Catalogue
+          ← Choisir un autre fauteuil
         </button>
         <h1>{chairName}</h1>
       </header>
