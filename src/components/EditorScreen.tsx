@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Annotation, ExportApi, PartsState, SelectedModel, Vec3 } from '../types';
 import { defaultPartsState, getVariant } from '../data/chairVariants';
 import SceneCanvas from './SceneCanvas';
+import ErrorBoundary from './ErrorBoundary';
 import PartsPanel from './PartsPanel';
 import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
@@ -86,17 +87,26 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
         </aside>
 
         <main className="editor-canvas">
-          <SceneCanvas
-            model={model}
-            variant={variant}
-            partsState={partsState}
-            importTint={importTint}
-            importScale={importScale}
-            annotationMode={annotationMode}
-            annotations={annotations}
-            onSurfaceClick={handleSurfaceClick}
-            onExportReady={setExportApi}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="preview-fallback large">
+                La vue 3D n'a pas pu s'afficher sur cet appareil. Essaie de recharger la page ou d'utiliser un
+                autre navigateur.
+              </div>
+            }
+          >
+            <SceneCanvas
+              model={model}
+              variant={variant}
+              partsState={partsState}
+              importTint={importTint}
+              importScale={importScale}
+              annotationMode={annotationMode}
+              annotations={annotations}
+              onSurfaceClick={handleSurfaceClick}
+              onExportReady={setExportApi}
+            />
+          </ErrorBoundary>
         </main>
 
         <aside className="editor-side right">

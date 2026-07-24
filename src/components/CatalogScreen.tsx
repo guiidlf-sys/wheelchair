@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { CHAIR_VARIANTS } from '../data/chairVariants';
 import type { ChairVariantDef, ImportedExt, SelectedModel } from '../types';
 import VariantPreview from './VariantPreview';
+import ErrorBoundary from './ErrorBoundary';
 
 const ACCEPTED_EXT: ImportedExt[] = ['glb', 'gltf', 'obj', 'stl'];
 
@@ -47,7 +48,9 @@ export default function CatalogScreen({ onSelect, onBack }: Props) {
             onClick={() => onSelect({ kind: 'procedural', variantId: variant.id })}
           >
             <div className="catalog-card-preview">
-              <VariantPreview variant={variant} />
+              <ErrorBoundary fallback={<div className="preview-fallback">Aperçu 3D indisponible</div>}>
+                <VariantPreview variant={variant} />
+              </ErrorBoundary>
             </div>
             <div className="catalog-card-body">
               <h3>{variant.name}</h3>
