@@ -5,4 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/wheelchair/',
   plugins: [react()],
+  build: {
+    target: 'es2017',
+  },
 })
