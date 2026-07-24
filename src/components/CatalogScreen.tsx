@@ -1,8 +1,6 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { CHAIR_VARIANTS } from '../data/chairVariants';
-import type { ChairVariantDef, ImportedExt, SelectedModel } from '../types';
-import VariantPreview from './VariantPreview';
-import ErrorBoundary from './ErrorBoundary';
+import type { ImportedExt, SelectedModel } from '../types';
 
 const ACCEPTED_EXT: ImportedExt[] = ['glb', 'gltf', 'obj', 'stl'];
 
@@ -13,7 +11,16 @@ interface Props {
 
 export default function CatalogScreen({ onSelect, onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return CHAIR_VARIANTS;
+    return CHAIR_VARIANTS.filter(
+      (variant) => variant.name.toLowerCase().includes(q) || variant.description.toLowerCase().includes(q),
+    );
+  }, [query]);
 
   const handleFile = (file: File) => {
     const ext = file.name.split('.').pop()?.toLowerCase() as ImportedExt | undefined;
@@ -39,26 +46,38 @@ export default function CatalogScreen({ onSelect, onBack }: Props) {
         </p>
       </header>
 
-      <section className="catalog-grid">
-        {CHAIR_VARIANTS.map((variant: ChairVariantDef) => (
-          <button
-            key={variant.id}
-            type="button"
-            className="catalog-card"
-            onClick={() => onSelect({ kind: 'procedural', variantId: variant.id })}
-          >
-            <div className="catalog-card-preview">
-              <ErrorBoundary fallback={<div className="preview-fallback">Aperçu 3D indisponible</div>}>
-                <VariantPreview variant={variant} />
-              </ErrorBoundary>
-            </div>
-            <div className="catalog-card-body">
-              <h3>{variant.name}</h3>
-              <p>{variant.description}</p>
-            </div>
-          </button>
-        ))}
-      </section>
+      <div className="search-bar">
+        <input
+          type="search"
+          placeholder="Rechercher un fauteuil…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Rechercher un fauteuil"
+        />
+      </div>
+
+      {results.length === 0 ? (
+        <p className="search-empty">Aucun fauteuil ne correspond à "{query}".</p>
+      ) : (
+        <section className="catalog-grid">
+          {results.map((variant) => (
+            <button
+              key={variant.id}
+              type="button"
+              className="catalog-card"
+              onClick={() => onSelect({ kind: 'procedural', variantId: variant.id })}
+            >
+              <div className="catalog-card-preview">
+                <img src={variant.previewImage} alt={variant.name} loading="lazy" />
+              </div>
+              <div className="catalog-card-body">
+                <h3>{variant.name}</h3>
+                <p>{variant.description}</p>
+              </div>
+            </button>
+          ))}
+        </section>
+      )}
 
       <section className="import-section">
         <h2>Ou importe ton propre modèle 3D</h2>

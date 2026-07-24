@@ -20,6 +20,7 @@ export interface ChairVariantDef {
   id: 'manual' | 'sport' | 'electric';
   name: string;
   description: string;
+  previewImage: string;
   parts: PartDef[];
 }
 

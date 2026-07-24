@@ -1,9 +1,12 @@
 import type { ChairVariantDef } from '../types';
 
+const previewSrc = (file: string) => `${import.meta.env.BASE_URL}previews/${file}`;
+
 const manual: ChairVariantDef = {
   id: 'manual',
   name: 'Fauteuil manuel standard',
   description: 'Châssis pliable classique, grandes roues à main courante.',
+  previewImage: previewSrc('manual.png'),
   parts: [
     { id: 'frame', label: 'Châssis', kind: 'box', args: [0.42, 0.05, 0.42], position: [0, 0.42, 0], defaultColor: '#274472', metalness: 0.6, roughness: 0.35 },
     { id: 'seat', label: 'Assise', kind: 'box', args: [0.42, 0.06, 0.42], position: [0, 0.48, 0], defaultColor: '#2b2b2b', roughness: 0.9 },
@@ -26,6 +29,7 @@ const sport: ChairVariantDef = {
   id: 'sport',
   name: 'Fauteuil sport / léger',
   description: 'Châssis rigide bas, roues carrossées, sans accoudoirs.',
+  previewImage: previewSrc('sport.png'),
   parts: [
     { id: 'frame', label: 'Châssis', kind: 'box', args: [0.4, 0.045, 0.46], position: [0, 0.36, 0], defaultColor: '#a11d1d', metalness: 0.7, roughness: 0.3 },
     { id: 'seat', label: 'Assise', kind: 'box', args: [0.4, 0.05, 0.4], position: [0, 0.41, 0], defaultColor: '#111111', roughness: 0.9 },
@@ -45,6 +49,7 @@ const electric: ChairVariantDef = {
   id: 'electric',
   name: 'Fauteuil électrique',
   description: 'Base motorisée, batterie, roues motrices arrière, joystick.',
+  previewImage: previewSrc('electric.png'),
   parts: [
     { id: 'base', label: 'Base motorisée', kind: 'box', args: [0.5, 0.14, 0.62], position: [0, 0.14, 0], defaultColor: '#1c1c1c', metalness: 0.4, roughness: 0.6 },
     { id: 'battery', label: 'Batterie', kind: 'box', args: [0.34, 0.09, 0.16], position: [0, 0.24, -0.16], defaultColor: '#333333', metalness: 0.3, roughness: 0.6, removable: true },

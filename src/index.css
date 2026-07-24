@@ -119,7 +119,6 @@ button.secondary {
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 22px;
 }
 
 .site-nav a {
@@ -127,6 +126,11 @@ button.secondary {
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
+  margin-left: 22px;
+}
+
+.site-nav a:first-child {
+  margin-left: 0;
 }
 
 .site-nav a:hover {
@@ -263,6 +267,47 @@ button.secondary {
 .catalog-card-preview {
   height: 220px;
   background: var(--sidebar);
+}
+
+.catalog-card-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.search-bar {
+  margin-bottom: 32px;
+}
+
+.search-bar input {
+  width: 100%;
+  font: inherit;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text-h);
+}
+
+.search-bar input::placeholder {
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.search-empty {
+  text-align: center;
+  color: var(--text);
+  margin-bottom: 48px;
+}
+
+.catalog-note {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.8;
 }
 
 .preview-fallback {
@@ -646,4 +691,26 @@ button.secondary {
 
 .export-buttons button:hover:not(:disabled) {
   background: var(--accent-hover);
+}
+
+/* ---------- Flexbox gap fallback ----------
+   Safari < 14.1 ignores `gap` on flex containers (grid gap is fine, this
+   only covers flex ones). This block only runs where `gap` isn't
+   supported at all, so modern browsers are unaffected. */
+@supports not (gap: 1rem) {
+  .site-header > *:not(:first-child) { margin-left: 12px; }
+  .home-actions > *:not(:first-child) { margin-left: 12px; }
+  .editor-header > *:not(:first-child) { margin-left: 16px; }
+  .editor-side > *:not(:first-child) { margin-top: 16px; }
+  .parts-list > *:not(:first-child) { margin-top: 6px; }
+  .part-item summary > *:not(:first-child) { margin-left: 8px; }
+  .part-controls > *:not(:first-child) { margin-top: 8px; }
+  .control-row > *:not(:first-child) { margin-left: 10px; }
+  .part-actions > *:not(:first-child) { margin-left: 8px; }
+  .pending-annotation > *:not(:first-child) { margin-top: 8px; }
+  .pending-actions > *:not(:first-child) { margin-left: 8px; }
+  .annotation-list > *:not(:first-child) { margin-top: 6px; }
+  .annotation-list li > *:not(:first-child) { margin-left: 8px; }
+  .modifications-summary ul > *:not(:first-child) { margin-top: 4px; }
+  .export-buttons > *:not(:first-child) { margin-top: 8px; }
 }
