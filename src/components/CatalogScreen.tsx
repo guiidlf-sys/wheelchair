@@ -7,9 +7,10 @@ const ACCEPTED_EXT: ImportedExt[] = ['glb', 'gltf', 'obj', 'stl'];
 
 interface Props {
   onSelect: (model: SelectedModel) => void;
+  onBack: () => void;
 }
 
-export default function CatalogScreen({ onSelect }: Props) {
+export default function CatalogScreen({ onSelect, onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -26,8 +27,11 @@ export default function CatalogScreen({ onSelect }: Props) {
 
   return (
     <div className="catalog-screen">
+      <button type="button" className="secondary back-link" onClick={onBack}>
+        ← Accueil
+      </button>
       <header className="catalog-header">
-        <h1>Personnalise ton fauteuil roulant</h1>
+        <h1>Choisis ton point de départ</h1>
         <p>
           Choisis un modèle de départ ou importe le tien, ajoute les modifications que tu veux, puis télécharge
           le résultat pour le montrer à un fabricant.
