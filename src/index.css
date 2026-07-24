@@ -1,19 +1,19 @@
 :root {
-  --text: #72604a;
-  --text-h: #2b1f11;
-  --bg: #fbf8f1;
-  --panel-bg: #ffffff;
-  --border: #dccfbc;
-  --accent: #90693b;
-  --accent-hover: #7a5830;
-  --accent-soft: #ccb48c;
-  --sidebar: #f2eadd;
-  --danger: #b3413a;
+  --text: #c3b29b;
+  --text-h: #f5ead9;
+  --bg: #1a1512;
+  --panel-bg: #231c17;
+  --border: #3c3125;
+  --accent: #cc9760;
+  --accent-hover: #ddac78;
+  --accent-soft: #8a6b47;
+  --sidebar: #2b2219;
+  --danger: #e2685c;
 
   --sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
   --serif: 'Lora', Georgia, 'Times New Roman', serif;
   font: 16px/150% var(--sans);
-  color-scheme: light;
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -81,7 +81,8 @@ button.secondary {
 .cta {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--bg);
+  font-weight: 700;
 }
 
 .cta:hover:not(:disabled) {
@@ -138,14 +139,15 @@ button.secondary {
 
 .site-nav a.nav-cta {
   background: var(--accent);
-  color: #fff;
+  color: var(--bg);
+  font-weight: 700;
   padding: 8px 16px;
   border-radius: 999px;
 }
 
 .site-nav a.nav-cta:hover {
   background: var(--accent-hover);
-  color: #fff;
+  color: var(--bg);
 }
 
 /* ---------- Home screen ---------- */
@@ -509,7 +511,8 @@ button.secondary {
 .toggle.active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--bg);
+  font-weight: 700;
 }
 
 .pending-annotation {
@@ -636,7 +639,8 @@ button.secondary {
 .export-buttons button {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--bg);
+  font-weight: 700;
   font-size: 13px;
 }
 
