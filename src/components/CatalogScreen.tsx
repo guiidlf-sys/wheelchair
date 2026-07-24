@@ -73,6 +73,7 @@ export default function CatalogScreen({ onSelect, onBack }: Props) {
               <div className="catalog-card-body">
                 <h3>{variant.name}</h3>
                 <p>{variant.description}</p>
+                <p className="photo-credit">{variant.photoCredit}</p>
               </div>
             </button>
           ))}

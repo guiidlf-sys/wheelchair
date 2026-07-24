@@ -337,6 +337,12 @@ button.secondary {
   margin-top: 6px;
 }
 
+.photo-credit {
+  font-size: 11px !important;
+  opacity: 0.6;
+  margin-top: 8px !important;
+}
+
 .import-section h2 {
   font-size: 20px;
   margin-bottom: 12px;

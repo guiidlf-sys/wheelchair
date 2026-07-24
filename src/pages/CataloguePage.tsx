@@ -53,6 +53,7 @@ export default function CataloguePage() {
                 >
                   Personnaliser celui-ci
                 </button>
+                <p className="photo-credit">{variant.photoCredit}</p>
               </div>
             </div>
           ))}
@@ -60,9 +61,9 @@ export default function CataloguePage() {
       )}
 
       <p className="catalog-note">
-        Ce sont des rendus 3D des modèles que tu peux personnaliser ici, pas des photos de fauteuils du commerce —
-        on n'a pas de base de données de tous les fauteuils existants. Tu peux importer le tien depuis la page
-        Personnalisation si tu as un modèle 3D précis en tête.
+        Ce ne sont pas des fauteuils précis du commerce, mais des photos réelles représentatives de chaque
+        catégorie — on n'a pas de base de données de tous les fauteuils existants au monde. Tu peux importer ton
+        propre modèle 3D depuis la page Personnalisation si tu as un fauteuil précis en tête.
       </p>
     </div>
   );

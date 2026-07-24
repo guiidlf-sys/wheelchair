@@ -21,6 +21,7 @@ export interface ChairVariantDef {
   name: string;
   description: string;
   previewImage: string;
+  photoCredit: string;
   parts: PartDef[];
 }
 
