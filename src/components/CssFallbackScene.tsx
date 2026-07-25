@@ -57,6 +57,48 @@ function Disc({ r, h, color }: { r: number; h: number; color: string }) {
   );
 }
 
+const SPOKE_COUNT = 5;
+const SPOKE_COLOR = '#c7c7c7';
+const HUB_RATIO = 0.16;
+const RIM_RATIO = 0.92;
+const RIM_TUBE_RATIO = 0.075;
+
+function spokeAngles(count: number): number[] {
+  return Array.from({ length: count }, (_, i) => (i * Math.PI) / count);
+}
+
+function Spoke({ length, theta }: { length: number; theta: number }) {
+  const L = length * PX;
+  const W = 3;
+  return (
+    <div
+      style={withTransform(`rotateX(90deg) rotateZ(${theta}rad)`, {
+        ...faceBase,
+        width: W,
+        height: L,
+        marginLeft: -W / 2,
+        marginTop: -L / 2,
+        background: SPOKE_COLOR,
+      })}
+    />
+  );
+}
+
+/** Same hub + rim + spokes composition as the WebGL renderer — a solid disc would hide the spokes entirely. */
+function SpokedWheel({ r, h, color }: { r: number; h: number; color: string }) {
+  const rimR = r * RIM_RATIO;
+  const rimTube = r * RIM_TUBE_RATIO;
+  return (
+    <div style={PRESERVE_3D}>
+      <Disc r={r * HUB_RATIO} h={h} color={color} />
+      <Ring r={rimR - rimTube} tube={rimTube} color={SPOKE_COLOR} />
+      {spokeAngles(SPOKE_COUNT).map((theta, i) => (
+        <Spoke key={i} length={rimR * 2} theta={theta} />
+      ))}
+    </div>
+  );
+}
+
 function Ring({ r, tube, color }: { r: number; tube: number; color: string }) {
   const outer = (r + tube) * 2 * PX;
   const border = Math.max(1, tube * 2 * PX);
@@ -100,6 +142,7 @@ function PartShape({ part, color }: { part: PartDef; color: string }) {
   }
   if (part.kind === 'cylinder') {
     const [r, , h] = part.args;
+    if (part.spoked) return <SpokedWheel r={r} h={h} color={color} />;
     return <Disc r={r} h={h} color={color} />;
   }
   if (part.kind === 'torus') {

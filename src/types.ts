@@ -14,6 +14,8 @@ export interface PartDef {
   removable?: boolean;
   metalness?: number;
   roughness?: number;
+  /** Wheel-like cylinder parts get baked-in decorative spokes instead of a solid disc. */
+  spoked?: boolean;
 }
 
 export interface ChairVariantDef {

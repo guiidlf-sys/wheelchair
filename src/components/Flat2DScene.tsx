@@ -18,6 +18,7 @@ interface Item {
   x: number;
   y: number;
   z: number;
+  round: boolean;
 }
 
 interface Props {
@@ -40,7 +41,8 @@ export default function Flat2DScene({ variant, partsState }: Props) {
       const x = (part.position[0] + state.position[0]) * PX;
       const y = -(part.position[1] + state.position[1]) * PX;
       const z = part.position[2] + state.position[2];
-      return { id: part.id, label: part.label, color: state.color, w, h, x, y, z };
+      const round = part.kind === 'cylinder' || part.kind === 'sphere' || part.kind === 'torus';
+      return { id: part.id, label: part.label, color: state.color, w, h, x, y, z, round };
     })
     .filter((v): v is Item => v !== null)
     .sort((a, b) => a.z - b.z);
@@ -60,6 +62,7 @@ export default function Flat2DScene({ variant, partsState }: Props) {
               left: `calc(50% + ${item.x}px)`,
               top: `calc(58% + ${item.y}px)`,
               background: item.color,
+              borderRadius: item.round ? '50%' : undefined,
             }}
             title={item.label}
           />
