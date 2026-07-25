@@ -3,6 +3,7 @@ import type { Annotation, ExportApi, PartsState, SelectedModel, Vec3 } from '../
 import { defaultPartsState, getVariant } from '../data/chairVariants';
 import SceneCanvas from './SceneCanvas';
 import ErrorBoundary from './ErrorBoundary';
+import AssistantBar from './AssistantBar';
 import PartsPanel from './PartsPanel';
 import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
@@ -51,6 +52,11 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
     }));
   };
 
+  const handleResetAll = () => {
+    if (!variant) return;
+    setPartsState(defaultPartsState(variant));
+  };
+
   const handleSurfaceClick = (point: Vec3) => {
     setPendingPoint(point);
   };
@@ -70,6 +76,14 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
         </button>
         <h1>{chairName}</h1>
       </header>
+
+      <AssistantBar
+        variant={variant}
+        partsState={partsState}
+        onChange={handlePartChange}
+        onResetPart={handleResetPart}
+        onResetAll={handleResetAll}
+      />
 
       <div className="editor-body">
         <aside className="editor-side left">
