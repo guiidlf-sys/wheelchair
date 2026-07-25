@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { CHAIR_VARIANTS } from '../data/chairVariants';
+import { CATALOG_ENTRIES } from '../data/chairVariants';
 import type { ImportedExt, SelectedModel } from '../types';
 
 const ACCEPTED_EXT: ImportedExt[] = ['glb', 'gltf', 'obj', 'stl'];
@@ -16,9 +16,9 @@ export default function CatalogScreen({ onSelect, onBack }: Props) {
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return CHAIR_VARIANTS;
-    return CHAIR_VARIANTS.filter(
-      (variant) => variant.name.toLowerCase().includes(q) || variant.description.toLowerCase().includes(q),
+    if (!q) return CATALOG_ENTRIES;
+    return CATALOG_ENTRIES.filter(
+      (entry) => entry.name.toLowerCase().includes(q) || entry.description.toLowerCase().includes(q),
     );
   }, [query]);
 
@@ -60,20 +60,20 @@ export default function CatalogScreen({ onSelect, onBack }: Props) {
         <p className="search-empty">Aucun fauteuil ne correspond à "{query}".</p>
       ) : (
         <section className="catalog-grid">
-          {results.map((variant) => (
+          {results.map((entry) => (
             <button
-              key={variant.id}
+              key={entry.id}
               type="button"
               className="catalog-card"
-              onClick={() => onSelect({ kind: 'procedural', variantId: variant.id })}
+              onClick={() => onSelect({ kind: 'procedural', variantId: entry.baseVariantId })}
             >
               <div className="catalog-card-preview">
-                <img src={variant.previewImage} alt={variant.name} loading="lazy" />
+                <img src={entry.previewImage} alt={entry.name} loading="lazy" />
               </div>
               <div className="catalog-card-body">
-                <h3>{variant.name}</h3>
-                <p>{variant.description}</p>
-                <p className="photo-credit">{variant.photoCredit}</p>
+                <h3>{entry.name}</h3>
+                <p>{entry.description}</p>
+                <p className="photo-credit">{entry.photoCredit}</p>
               </div>
             </button>
           ))}

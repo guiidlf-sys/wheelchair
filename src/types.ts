@@ -20,9 +20,21 @@ export interface ChairVariantDef {
   id: 'manual' | 'sport' | 'electric';
   name: string;
   description: string;
+  parts: PartDef[];
+}
+
+/**
+ * A catalog card. Most map 1:1 to a ChairVariantDef (baseVariantId === id),
+ * but some are real-photo-only references (e.g. a beach or standing
+ * wheelchair) that open the closest editable base model when personalized.
+ */
+export interface CatalogEntry {
+  id: string;
+  name: string;
+  description: string;
   previewImage: string;
   photoCredit: string;
-  parts: PartDef[];
+  baseVariantId: ChairVariantDef['id'];
 }
 
 export interface PartState {
