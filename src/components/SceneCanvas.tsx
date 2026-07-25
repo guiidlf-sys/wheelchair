@@ -36,7 +36,12 @@ export default function SceneCanvas({
   return (
     <Canvas
       shadows
-      gl={{ preserveDrawingBuffer: true }}
+      gl={{
+        preserveDrawingBuffer: true,
+        failIfMajorPerformanceCaveat: false,
+        antialias: false,
+        powerPreference: 'default',
+      }}
       camera={{ position: [1.4, 1.1, 1.6], fov: 40 }}
       className={annotationMode ? 'annotation-cursor' : undefined}
     >

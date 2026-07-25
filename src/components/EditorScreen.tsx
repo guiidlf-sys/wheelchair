@@ -13,8 +13,15 @@ import { hasWebGL } from '../utils/webgl';
 
 const NO_WEBGL_MESSAGE = (
   <div className="preview-fallback large">
-    La vue 3D n'a pas pu s'afficher sur cet appareil (WebGL n'est pas disponible dans ce navigateur). Essaie un
-    autre navigateur, ou vérifie que l'accélération matérielle est activée dans les réglages.
+    La vue 3D n'a pas pu s'afficher sur cet appareil : ce navigateur n'a proposé aucun contexte WebGL (code E1).
+    Essaie un autre navigateur, ou vérifie que l'accélération matérielle est activée dans les réglages.
+  </div>
+);
+
+const WEBGL_CRASH_MESSAGE = (
+  <div className="preview-fallback large">
+    La vue 3D a démarré mais a rencontré une erreur sur cet appareil (code E2). Essaie de recharger la page ou
+    un autre navigateur.
   </div>
 );
 
@@ -111,7 +118,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
 
         <main className="editor-canvas">
           {webglAvailable ? (
-            <ErrorBoundary fallback={NO_WEBGL_MESSAGE}>
+            <ErrorBoundary fallback={WEBGL_CRASH_MESSAGE}>
               <SceneCanvas
                 model={model}
                 variant={variant}
