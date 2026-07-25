@@ -586,6 +586,52 @@ button.secondary {
   z-index: 1;
 }
 
+.flat2d-scene {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.flat2d-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #3a2f26;
+  overflow: hidden;
+}
+
+.flat2d-part {
+  position: absolute;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.flat2d-legend {
+  list-style: none;
+  margin: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-h);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.flat2d-legend li {
+  display: flex;
+  align-items: center;
+  margin: 3px 12px 3px 0;
+}
+
+.flat2d-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
 /* ---------- Panels ---------- */
 
 .panel {

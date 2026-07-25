@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { ChairVariantDef, PartDef, PartsState, Vec3 } from '../types';
 
 const PX = 260;
@@ -126,33 +126,75 @@ interface Props {
 export default function CssFallbackScene({ variant, partsState }: Props) {
   const [rot, setRot] = useState({ x: -14, y: -35 });
   const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
-    dragRef.current = { x: e.clientX, y: e.clientY };
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    const dx = e.clientX - dragRef.current.x;
-    const dy = e.clientY - dragRef.current.y;
-    dragRef.current = { x: e.clientX, y: e.clientY };
-    setRot((prev) => ({
-      x: Math.max(-75, Math.min(75, prev.x - dy * 0.4)),
-      y: prev.y + dx * 0.4,
-    }));
-  };
-  const onPointerUp = () => {
-    dragRef.current = null;
-  };
+  // Native listeners instead of React's synthetic pointer/touch events: React
+  // attaches touch listeners as passive by default, which silently breaks
+  // preventDefault() on touchmove in some mobile browsers, and Pointer Events
+  // support is inconsistent enough on tablets that mouse+touch is more
+  // reliable. Move/up are on window so the drag keeps tracking even if the
+  // finger/cursor leaves the stage element mid-gesture.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const applyDelta = (dx: number, dy: number) => {
+      setRot((prev) => ({
+        x: Math.max(-75, Math.min(75, prev.x - dy * 0.4)),
+        y: prev.y + dx * 0.4,
+      }));
+    };
+
+    const onMouseDown = (e: MouseEvent) => {
+      dragRef.current = { x: e.clientX, y: e.clientY };
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragRef.current) return;
+      applyDelta(e.clientX - dragRef.current.x, e.clientY - dragRef.current.y);
+      dragRef.current = { x: e.clientX, y: e.clientY };
+    };
+    const onMouseUp = () => {
+      dragRef.current = null;
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      dragRef.current = { x: t.clientX, y: t.clientY };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!dragRef.current) return;
+      const t = e.touches[0];
+      if (!t) return;
+      e.preventDefault();
+      applyDelta(t.clientX - dragRef.current.x, t.clientY - dragRef.current.y);
+      dragRef.current = { x: t.clientX, y: t.clientY };
+    };
+    const onTouchEnd = () => {
+      dragRef.current = null;
+    };
+
+    stage.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    stage.addEventListener('touchstart', onTouchStart, { passive: true });
+    stage.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onTouchEnd);
+
+    return () => {
+      stage.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      stage.removeEventListener('touchstart', onTouchStart);
+      stage.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, []);
 
   return (
-    <div
-      className="css3d-stage"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerUp}
-    >
+    <div className="css3d-stage" ref={stageRef}>
       <div
         className="css3d-world"
         style={withTransform(`rotateX(${rot.x}deg) rotateY(${rot.y}deg) translateY(${CENTER_Y * PX}px)`)}

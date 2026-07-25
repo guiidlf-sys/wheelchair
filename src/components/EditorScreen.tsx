@@ -5,12 +5,14 @@ import SceneCanvas from './SceneCanvas';
 import ErrorBoundary from './ErrorBoundary';
 import AssistantBar from './AssistantBar';
 import CssFallbackScene from './CssFallbackScene';
+import Flat2DScene from './Flat2DScene';
 import PartsPanel from './PartsPanel';
 import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
 import ExportPanel from './ExportPanel';
 import { describeModifications } from '../utils/modifications';
 import { hasWebGL } from '../utils/webgl';
+import { has3DTransformSupport } from '../utils/css3dSupport';
 
 const NO_WEBGL_IMPORTED_MESSAGE = (
   <div className="preview-fallback large">
@@ -39,6 +41,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
   const variant = model.kind === 'procedural' && model.variantId ? getVariant(model.variantId) : undefined;
   const [partsState, setPartsState] = useState<PartsState>(() => (variant ? defaultPartsState(variant) : {}));
   const [webglAvailable] = useState(hasWebGL);
+  const [css3dAvailable] = useState(has3DTransformSupport);
 
   const [importTint, setImportTint] = useState<string | null>(null);
   const [importScale, setImportScale] = useState(1);
@@ -133,13 +136,15 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
                 onExportReady={setExportApi}
               />
             </ErrorBoundary>
-          ) : variant ? (
+          ) : variant && css3dAvailable ? (
             <>
               <div className="css3d-fallback-note">
                 Aperçu 3D simplifié — WebGL indisponible sur cet appareil. Glisse pour tourner.
               </div>
               <CssFallbackScene variant={variant} partsState={partsState} />
             </>
+          ) : variant ? (
+            <Flat2DScene variant={variant} partsState={partsState} />
           ) : (
             NO_WEBGL_IMPORTED_MESSAGE
           )}
