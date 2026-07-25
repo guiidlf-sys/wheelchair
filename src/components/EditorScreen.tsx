@@ -4,6 +4,7 @@ import { defaultPartsState, getVariant } from '../data/chairVariants';
 import SceneCanvas from './SceneCanvas';
 import ErrorBoundary from './ErrorBoundary';
 import AssistantBar from './AssistantBar';
+import CssFallbackScene from './CssFallbackScene';
 import PartsPanel from './PartsPanel';
 import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
@@ -11,14 +12,15 @@ import ExportPanel from './ExportPanel';
 import { describeModifications } from '../utils/modifications';
 import { hasWebGL } from '../utils/webgl';
 
-const NO_WEBGL_MESSAGE = (
+const NO_WEBGL_IMPORTED_MESSAGE = (
   <div className="preview-fallback large">
-    La vue 3D n'a pas pu s'afficher sur cet appareil : ce navigateur n'a proposé aucun contexte WebGL (code E1).
-    Essaie un autre navigateur, ou vérifie que l'accélération matérielle est activée dans les réglages.
+    Ce navigateur n'a proposé aucun contexte WebGL (code E1), et un modèle importé ne peut s'afficher qu'en 3D
+    réelle. Choisis un des modèles du catalogue à la place (visualisable même sans WebGL), ou essaie un autre
+    navigateur.
   </div>
 );
 
-const WEBGL_CRASH_MESSAGE = (
+const WEBGL_CRASH_IMPORTED_MESSAGE = (
   <div className="preview-fallback large">
     La vue 3D a démarré mais a rencontré une erreur sur cet appareil (code E2). Essaie de recharger la page ou
     un autre navigateur.
@@ -118,7 +120,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
 
         <main className="editor-canvas">
           {webglAvailable ? (
-            <ErrorBoundary fallback={WEBGL_CRASH_MESSAGE}>
+            <ErrorBoundary fallback={variant ? <CssFallbackScene variant={variant} partsState={partsState} /> : WEBGL_CRASH_IMPORTED_MESSAGE}>
               <SceneCanvas
                 model={model}
                 variant={variant}
@@ -131,8 +133,15 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
                 onExportReady={setExportApi}
               />
             </ErrorBoundary>
+          ) : variant ? (
+            <>
+              <div className="css3d-fallback-note">
+                Aperçu 3D simplifié — WebGL indisponible sur cet appareil. Glisse pour tourner.
+              </div>
+              <CssFallbackScene variant={variant} partsState={partsState} />
+            </>
           ) : (
-            NO_WEBGL_MESSAGE
+            NO_WEBGL_IMPORTED_MESSAGE
           )}
         </main>
 
@@ -145,6 +154,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
             onCancelPending={() => setPendingPoint(null)}
             annotations={annotations}
             onDelete={(id) => setAnnotations((prev) => prev.filter((a) => a.id !== id))}
+            disabled={!webglAvailable}
           />
           <ExportPanel
             chairName={chairName}

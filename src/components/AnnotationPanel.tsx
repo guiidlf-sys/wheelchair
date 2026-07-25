@@ -9,6 +9,7 @@ interface Props {
   onCancelPending: () => void;
   annotations: Annotation[];
   onDelete: (id: string) => void;
+  disabled?: boolean;
 }
 
 export default function AnnotationPanel({
@@ -19,6 +20,7 @@ export default function AnnotationPanel({
   onCancelPending,
   annotations,
   onDelete,
+  disabled,
 }: Props) {
   const [draft, setDraft] = useState('');
 
@@ -31,8 +33,12 @@ export default function AnnotationPanel({
   return (
     <div className="panel annotation-panel">
       <h2>Annotations</h2>
-      <p className="hint">Clique un point du fauteuil pour laisser une note au fabricant.</p>
-      <button type="button" className={annotationMode ? 'toggle active' : 'toggle'} onClick={onToggleMode}>
+      <p className="hint">
+        {disabled
+          ? "Demande la vue 3D interactive (WebGL), indisponible sur cet appareil."
+          : 'Clique un point du fauteuil pour laisser une note au fabricant.'}
+      </p>
+      <button type="button" className={annotationMode ? 'toggle active' : 'toggle'} onClick={onToggleMode} disabled={disabled}>
         {annotationMode ? 'Mode annotation actif — cliquer sur le modèle' : 'Activer le mode annotation'}
       </button>
 

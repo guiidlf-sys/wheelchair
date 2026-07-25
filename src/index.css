@@ -525,6 +525,64 @@ button.secondary {
   cursor: crosshair;
 }
 
+.css3d-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 900px;
+  touch-action: none;
+  cursor: grab;
+  overflow: hidden;
+  background: #3a2f26;
+}
+
+.css3d-stage:active {
+  cursor: grabbing;
+}
+
+.css3d-world {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+.css3d-part {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-style: preserve-3d;
+}
+
+.css3d-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--text-h);
+  opacity: 0.75;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px 12px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.css3d-fallback-note {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  font-size: 12px;
+  color: var(--text-h);
+  background: rgba(0, 0, 0, 0.45);
+  padding: 8px 12px;
+  border-radius: 10px;
+  z-index: 1;
+}
+
 /* ---------- Panels ---------- */
 
 .panel {

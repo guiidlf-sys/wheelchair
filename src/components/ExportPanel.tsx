@@ -33,10 +33,9 @@ export default function ExportPanel({ chairName, modifications, annotations, exp
   };
 
   const handlePdf = () => {
-    if (!exportApi) return;
     setBusy('pdf');
     try {
-      const imageDataUrl = exportApi.exportImage(annotations);
+      const imageDataUrl = exportApi?.exportImage(annotations);
       const pdf = buildSpecPdf({ chairName, imageDataUrl, modifications, annotations, authorEmail });
       pdf.save(`${slug(chairName)}-fiche.pdf`);
     } finally {
@@ -64,10 +63,16 @@ export default function ExportPanel({ chairName, modifications, annotations, exp
         <button type="button" onClick={handleImage} disabled={!exportApi || busy !== null}>
           Télécharger une image annotée
         </button>
-        <button type="button" onClick={handlePdf} disabled={!exportApi || busy !== null}>
+        <button type="button" onClick={handlePdf} disabled={busy !== null}>
           {busy === 'pdf' ? 'Génération…' : 'Générer la fiche PDF pour le fabricant'}
         </button>
       </div>
+      {!exportApi && (
+        <p className="hint">
+          Le modèle 3D et l'image annotée demandent WebGL, indisponible sur cet appareil. La fiche PDF reste
+          disponible avec la liste des modifications, sans aperçu visuel.
+        </p>
+      )}
     </div>
   );
 }

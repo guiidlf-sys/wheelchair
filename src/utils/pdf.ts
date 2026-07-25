@@ -3,7 +3,7 @@ import type { Annotation } from '../types';
 
 interface BuildPdfArgs {
   chairName: string;
-  imageDataUrl: string;
+  imageDataUrl?: string;
   modifications: string[];
   annotations: Annotation[];
   authorEmail?: string;
@@ -32,10 +32,17 @@ export function buildSpecPdf({ chairName, imageDataUrl, modifications, annotatio
   pdf.setTextColor(0);
   y += 10;
 
-  const imgWidth = pageWidth - margin * 2;
-  const imgHeight = imgWidth * 0.6;
-  pdf.addImage(imageDataUrl, 'PNG', margin, y, imgWidth, imgHeight);
-  y += imgHeight + 24;
+  if (imageDataUrl) {
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight = imgWidth * 0.6;
+    pdf.addImage(imageDataUrl, 'PNG', margin, y, imgWidth, imgHeight);
+    y += imgHeight + 24;
+  } else {
+    pdf.setTextColor(120);
+    pdf.text("Aperçu visuel non disponible sur cet appareil — voir la liste des modifications ci-dessous.", margin, y);
+    pdf.setTextColor(0);
+    y += 24;
+  }
 
   pdf.setFontSize(14);
   pdf.text('Modifications demandées', margin, y);
