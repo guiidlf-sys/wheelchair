@@ -9,6 +9,14 @@ import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
 import ExportPanel from './ExportPanel';
 import { describeModifications } from '../utils/modifications';
+import { hasWebGL } from '../utils/webgl';
+
+const NO_WEBGL_MESSAGE = (
+  <div className="preview-fallback large">
+    La vue 3D n'a pas pu s'afficher sur cet appareil (WebGL n'est pas disponible dans ce navigateur). Essaie un
+    autre navigateur, ou vérifie que l'accélération matérielle est activée dans les réglages.
+  </div>
+);
 
 interface Props {
   model: SelectedModel;
@@ -21,6 +29,7 @@ let annotationCounter = 0;
 export default function EditorScreen({ model, onBack, authorEmail }: Props) {
   const variant = model.kind === 'procedural' && model.variantId ? getVariant(model.variantId) : undefined;
   const [partsState, setPartsState] = useState<PartsState>(() => (variant ? defaultPartsState(variant) : {}));
+  const [webglAvailable] = useState(hasWebGL);
 
   const [importTint, setImportTint] = useState<string | null>(null);
   const [importScale, setImportScale] = useState(1);
@@ -101,26 +110,23 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
         </aside>
 
         <main className="editor-canvas">
-          <ErrorBoundary
-            fallback={
-              <div className="preview-fallback large">
-                La vue 3D n'a pas pu s'afficher sur cet appareil. Essaie de recharger la page ou d'utiliser un
-                autre navigateur.
-              </div>
-            }
-          >
-            <SceneCanvas
-              model={model}
-              variant={variant}
-              partsState={partsState}
-              importTint={importTint}
-              importScale={importScale}
-              annotationMode={annotationMode}
-              annotations={annotations}
-              onSurfaceClick={handleSurfaceClick}
-              onExportReady={setExportApi}
-            />
-          </ErrorBoundary>
+          {webglAvailable ? (
+            <ErrorBoundary fallback={NO_WEBGL_MESSAGE}>
+              <SceneCanvas
+                model={model}
+                variant={variant}
+                partsState={partsState}
+                importTint={importTint}
+                importScale={importScale}
+                annotationMode={annotationMode}
+                annotations={annotations}
+                onSurfaceClick={handleSurfaceClick}
+                onExportReady={setExportApi}
+              />
+            </ErrorBoundary>
+          ) : (
+            NO_WEBGL_MESSAGE
+          )}
         </main>
 
         <aside className="editor-side right">
