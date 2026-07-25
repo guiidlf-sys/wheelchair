@@ -22,18 +22,25 @@ function shade(hex: string, amount: number): string {
 
 const faceBase: CSSProperties = { position: 'absolute', top: '50%', left: '50%' };
 
+/** Older Safari/iOS needs the -webkit- prefixed forms alongside the standard ones; React doesn't autoprefix inline styles. */
+const PRESERVE_3D: CSSProperties = { transformStyle: 'preserve-3d', WebkitTransformStyle: 'preserve-3d' } as CSSProperties;
+
+function withTransform(transform: string, extra?: CSSProperties): CSSProperties {
+  return { ...extra, transform, WebkitTransform: transform } as CSSProperties;
+}
+
 function Cuboid({ w, h, d, color }: { w: number; h: number; d: number; color: string }) {
   const W = w * PX;
   const H = h * PX;
   const D = d * PX;
   return (
-    <div style={{ transformStyle: 'preserve-3d' }}>
-      <div style={{ ...faceBase, width: W, height: H, marginLeft: -W / 2, marginTop: -H / 2, background: shade(color, 0.08), transform: `translateZ(${D / 2}px)` }} />
-      <div style={{ ...faceBase, width: W, height: H, marginLeft: -W / 2, marginTop: -H / 2, background: shade(color, -0.25), transform: `translateZ(${-D / 2}px) rotateY(180deg)` }} />
-      <div style={{ ...faceBase, width: D, height: H, marginLeft: -D / 2, marginTop: -H / 2, background: shade(color, -0.1), transform: `translateX(${W / 2}px) rotateY(90deg)` }} />
-      <div style={{ ...faceBase, width: D, height: H, marginLeft: -D / 2, marginTop: -H / 2, background: shade(color, -0.1), transform: `translateX(${-W / 2}px) rotateY(-90deg)` }} />
-      <div style={{ ...faceBase, width: W, height: D, marginLeft: -W / 2, marginTop: -D / 2, background: shade(color, 0.25), transform: `translateY(${-H / 2}px) rotateX(90deg)` }} />
-      <div style={{ ...faceBase, width: W, height: D, marginLeft: -W / 2, marginTop: -D / 2, background: shade(color, -0.35), transform: `translateY(${H / 2}px) rotateX(-90deg)` }} />
+    <div style={PRESERVE_3D}>
+      <div style={withTransform(`translateZ(${D / 2}px)`, { ...faceBase, width: W, height: H, marginLeft: -W / 2, marginTop: -H / 2, background: shade(color, 0.08) })} />
+      <div style={withTransform(`translateZ(${-D / 2}px) rotateY(180deg)`, { ...faceBase, width: W, height: H, marginLeft: -W / 2, marginTop: -H / 2, background: shade(color, -0.25) })} />
+      <div style={withTransform(`translateX(${W / 2}px) rotateY(90deg)`, { ...faceBase, width: D, height: H, marginLeft: -D / 2, marginTop: -H / 2, background: shade(color, -0.1) })} />
+      <div style={withTransform(`translateX(${-W / 2}px) rotateY(-90deg)`, { ...faceBase, width: D, height: H, marginLeft: -D / 2, marginTop: -H / 2, background: shade(color, -0.1) })} />
+      <div style={withTransform(`translateY(${-H / 2}px) rotateX(90deg)`, { ...faceBase, width: W, height: D, marginLeft: -W / 2, marginTop: -D / 2, background: shade(color, 0.25) })} />
+      <div style={withTransform(`translateY(${H / 2}px) rotateX(-90deg)`, { ...faceBase, width: W, height: D, marginLeft: -W / 2, marginTop: -D / 2, background: shade(color, -0.35) })} />
     </div>
   );
 }
@@ -43,9 +50,9 @@ function Disc({ r, h, color }: { r: number; h: number; color: string }) {
   const H = h * PX;
   const base: CSSProperties = { ...faceBase, width: D, height: D, marginLeft: -D / 2, marginTop: -D / 2, borderRadius: '50%' };
   return (
-    <div style={{ transformStyle: 'preserve-3d' }}>
-      <div style={{ ...base, background: shade(color, 0.1), transform: `translateY(${-H / 2}px) rotateX(90deg)` }} />
-      <div style={{ ...base, background: shade(color, -0.3), transform: `translateY(${H / 2}px) rotateX(-90deg)` }} />
+    <div style={PRESERVE_3D}>
+      <div style={withTransform(`translateY(${-H / 2}px) rotateX(90deg)`, { ...base, background: shade(color, 0.1) })} />
+      <div style={withTransform(`translateY(${H / 2}px) rotateX(-90deg)`, { ...base, background: shade(color, -0.3) })} />
     </div>
   );
 }
@@ -55,7 +62,7 @@ function Ring({ r, tube, color }: { r: number; tube: number; color: string }) {
   const border = Math.max(1, tube * 2 * PX);
   return (
     <div
-      style={{
+      style={withTransform('rotateX(90deg)', {
         ...faceBase,
         width: outer,
         height: outer,
@@ -64,8 +71,7 @@ function Ring({ r, tube, color }: { r: number; tube: number; color: string }) {
         borderRadius: '50%',
         border: `${border}px solid ${color}`,
         background: 'transparent',
-        transform: 'rotateX(90deg)',
-      }}
+      })}
     />
   );
 }
@@ -149,7 +155,7 @@ export default function CssFallbackScene({ variant, partsState }: Props) {
     >
       <div
         className="css3d-world"
-        style={{ transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg) translateY(${-CENTER_Y * PX}px)` }}
+        style={withTransform(`rotateX(${rot.x}deg) rotateY(${rot.y}deg) translateY(${CENTER_Y * PX}px)`)}
       >
         {variant.parts.map((part) => {
           const state = partsState[part.id];
@@ -157,14 +163,9 @@ export default function CssFallbackScene({ variant, partsState }: Props) {
           const pos = addVec(part.position, state.position);
           const [rx = 0, ry = 0, rz = 0] = part.rotation ?? [0, 0, 0];
           const scale = state.scale[0];
+          const transform = `translate3d(${pos[0] * PX}px, ${-pos[1] * PX}px, ${pos[2] * PX}px) rotateZ(${rz}rad) rotateY(${ry}rad) rotateX(${rx}rad) scale3d(${scale}, ${scale}, ${scale})`;
           return (
-            <div
-              key={part.id}
-              className="css3d-part"
-              style={{
-                transform: `translate3d(${pos[0] * PX}px, ${-pos[1] * PX}px, ${pos[2] * PX}px) rotateZ(${rz}rad) rotateY(${ry}rad) rotateX(${rx}rad) scale3d(${scale}, ${scale}, ${scale})`,
-              }}
-            >
+            <div key={part.id} className="css3d-part" style={withTransform(transform)}>
               <PartShape part={part} color={state.color} />
             </div>
           );
