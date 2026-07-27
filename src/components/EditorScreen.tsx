@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import type { Annotation, ExportApi, PartsState, SelectedModel, Vec3 } from '../types';
+import type { AccessoryState, Annotation, ExportApi, PartsState, SelectedModel, Vec3 } from '../types';
 import { defaultPartsState, getVariant } from '../data/chairVariants';
+import { ACCESSORIES } from '../data/accessories';
 import SceneCanvas from './SceneCanvas';
 import ErrorBoundary from './ErrorBoundary';
 import AssistantBar from './AssistantBar';
@@ -8,6 +9,7 @@ import CssFallbackScene from './CssFallbackScene';
 import Flat2DScene from './Flat2DScene';
 import RealisticPreview from './RealisticPreview';
 import RealisticPanel from './RealisticPanel';
+import AccessoriesPanel from './AccessoriesPanel';
 import PartsPanel from './PartsPanel';
 import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
@@ -15,6 +17,14 @@ import ExportPanel from './ExportPanel';
 import { describeModifications } from '../utils/modifications';
 import { hasWebGL } from '../utils/webgl';
 import { has3DTransformSupport } from '../utils/css3dSupport';
+
+const defaultAccessoryState = (): AccessoryState => {
+  const state: AccessoryState = {};
+  for (const def of ACCESSORIES) {
+    state[def.id] = { enabled: false, tint: def.defaultTint };
+  }
+  return state;
+};
 
 const REALISTIC_CRASH_MESSAGE = (
   <div className="preview-fallback large">
@@ -64,6 +74,8 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
   const [showRealistic, setShowRealistic] = useState(false);
   const [realisticTint, setRealisticTint] = useState('#5a6b7a');
 
+  const [accessories, setAccessories] = useState<AccessoryState>(defaultAccessoryState);
+
   const chairName = variant ? variant.name : model.fileName ?? 'Modèle importé';
 
   const modifications = useMemo(() => {
@@ -106,6 +118,18 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
     setShowRealistic((v) => !v);
   };
 
+  const toggleAccessory = (id: string) => {
+    setAccessories((prev) => ({ ...prev, [id]: { ...prev[id], enabled: !prev[id].enabled } }));
+  };
+
+  const setAccessoryEnabled = (id: string, enabled: boolean) => {
+    setAccessories((prev) => ({ ...prev, [id]: { ...prev[id], enabled } }));
+  };
+
+  const setAccessoryTint = (id: string, tint: string) => {
+    setAccessories((prev) => ({ ...prev, [id]: { ...prev[id], tint } }));
+  };
+
   return (
     <div className="editor-screen">
       <header className="editor-header">
@@ -126,6 +150,8 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
         onChange={handlePartChange}
         onResetPart={handleResetPart}
         onResetAll={handleResetAll}
+        onAccessoryToggle={setAccessoryEnabled}
+        accessoriesSupported={webglAvailable}
       />
 
       <div className="editor-body">
@@ -148,7 +174,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
         <main className="editor-canvas">
           {showRealistic ? (
             <ErrorBoundary fallback={REALISTIC_CRASH_MESSAGE}>
-              <RealisticPreview tint={realisticTint} />
+              <RealisticPreview tint={realisticTint} accessories={accessories} />
             </ErrorBoundary>
           ) : webglAvailable ? (
             <ErrorBoundary fallback={variant ? <CssFallbackScene variant={variant} partsState={partsState} /> : WEBGL_CRASH_IMPORTED_MESSAGE}>
@@ -160,6 +186,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
                 importScale={importScale}
                 annotationMode={annotationMode}
                 annotations={annotations}
+                accessories={accessories}
                 onSurfaceClick={handleSurfaceClick}
                 onExportReady={setExportApi}
               />
@@ -179,6 +206,9 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
         </main>
 
         <aside className="editor-side right">
+          {webglAvailable && (
+            <AccessoriesPanel accessories={accessories} onToggle={toggleAccessory} onTintChange={setAccessoryTint} />
+          )}
           <AnnotationPanel
             annotationMode={annotationMode}
             onToggleMode={() => setAnnotationMode((v) => !v)}

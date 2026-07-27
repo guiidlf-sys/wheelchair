@@ -2,6 +2,9 @@ import { Suspense, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, OrbitControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
+import type { AccessoryState } from '../types';
+import AccessoryModel from './AccessoryModel';
+import { ACCESSORIES } from '../data/accessories';
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models/wheelchair-realistic.glb`;
 const TARGET_HEIGHT = 1;
@@ -18,6 +21,10 @@ function Model({ tint }: ModelProps) {
     // The source asset's own scale/pivot is unknown ahead of time, so fit it
     // to the scene at runtime instead of hardcoding fragile constants: scale
     // to a known target height, then sit it on the ground, centered on X/Z.
+    // Reset transform before measuring so this stays idempotent if the effect
+    // re-runs against an already-fitted object (Suspense loads commonly do).
+    cloned.scale.set(1, 1, 1);
+    cloned.position.set(0, 0, 0);
     const box = new THREE.Box3().setFromObject(cloned);
     const size = new THREE.Vector3();
     box.getSize(size);
@@ -44,6 +51,7 @@ useGLTF.preload(MODEL_URL);
 
 interface Props {
   tint: string;
+  accessories: AccessoryState;
 }
 
 /**
@@ -53,7 +61,7 @@ interface Props {
  * the procedural workspace — so this is a look-only preview with one overall
  * tint, not a replacement for the customizable editor.
  */
-export default function RealisticPreview({ tint }: Props) {
+export default function RealisticPreview({ tint, accessories }: Props) {
   return (
     <Canvas
       shadows
@@ -72,6 +80,9 @@ export default function RealisticPreview({ tint }: Props) {
       <directionalLight position={[0, 2, -4]} intensity={0.4} />
       <Suspense fallback={null}>
         <Model tint={tint} />
+        {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) => (
+          <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
+        ))}
         <ContactShadows position={[0, 0, 0]} opacity={0.5} scale={4} blur={2.2} far={2} />
       </Suspense>
       <gridHelper args={[6, 24, '#7a6650', '#5a4a3a']} />

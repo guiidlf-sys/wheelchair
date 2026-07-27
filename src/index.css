@@ -652,7 +652,17 @@ button.secondary {
   margin-bottom: 10px;
 }
 
-.parts-list {
+.parts-list,
+.accessories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.accessory-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -896,6 +906,8 @@ button.secondary {
   .assistant-bar > *:not(:first-child) { margin-top: 10px; }
   .assistant-messages > *:not(:first-child) { margin-top: 6px; }
   .assistant-input-row > *:not(:first-child) { margin-left: 8px; }
+  .accessories-list > *:not(:first-child) { margin-top: 6px; }
+  .accessory-item > *:not(:first-child) { margin-top: 6px; }
 }
 
 /* ---------- Tablets & phones ---------- */

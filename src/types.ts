@@ -68,3 +68,10 @@ export interface ExportApi {
   exportGLB: () => Promise<Blob>;
   exportImage: (annotations: Annotation[]) => string;
 }
+
+export interface AccessorySlotState {
+  enabled: boolean;
+  tint: string;
+}
+
+export type AccessoryState = Record<string, AccessorySlotState>;

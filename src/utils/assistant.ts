@@ -1,4 +1,5 @@
 import type { ChairVariantDef, PartsState, PartState } from '../types';
+import { ACCESSORIES } from '../data/accessories';
 
 export interface PartUpdate {
   partId: string;
@@ -10,6 +11,7 @@ export interface AssistantCommandResult {
   updates?: PartUpdate[];
   resetPartIds?: string[];
   resetAll?: boolean;
+  accessoryToggles?: { id: string; enabled: boolean }[];
 }
 
 function normalize(str: string): string {
@@ -87,6 +89,34 @@ function labelsFor(ids: string[], variant: ChairVariantDef): string[] {
   });
 }
 
+const STOPWORDS = new Set(['a', 'de', 'du', 'le', 'la', 'les', 'un', 'une', 'des', 'et']);
+
+interface AccessoryIndexEntry {
+  id: string;
+  base: string[];
+}
+
+const ACCESSORY_INDEX: AccessoryIndexEntry[] = ACCESSORIES.map((acc) => ({
+  id: acc.id,
+  base: tokenize(acc.label).filter((t) => t.length >= 2 && !STOPWORDS.has(t)),
+}));
+
+/** Same strict-then-relaxed matching strategy as findPartIds(), applied to the fixed accessory library instead of a per-variant part list. */
+function findAccessoryIds(tokens: string[]): string[] {
+  let matches = ACCESSORY_INDEX.filter((a) => a.base.length > 0 && a.base.every((t) => tokens.includes(t)));
+  if (matches.length === 0) {
+    matches = ACCESSORY_INDEX.filter((a) => a.base.some((t) => t.length >= 4 && tokens.includes(t)));
+  }
+  return matches.map((a) => a.id);
+}
+
+function accessoryLabelsFor(ids: string[]): string[] {
+  return ids.map((id) => {
+    const label = ACCESSORIES.find((a) => a.id === id)?.label ?? id;
+    return label.charAt(0).toLowerCase() + label.slice(1);
+  });
+}
+
 const COLOR_WORDS: Record<string, string> = {
   'bleu marine': '#1b2a4a',
   rouge: '#c0392b',
@@ -133,7 +163,12 @@ const ADD_VERBS = ['remets', 'remettre', 'rajoute', 'rajouter', 'ajoute', 'ajout
  * the input doesn't look like a customization instruction, so the caller can
  * fall back to answerQuestion() for a general FAQ-style reply.
  */
-export function interpretCommand(input: string, variant: ChairVariantDef, partsState: PartsState): AssistantCommandResult | null {
+export function interpretCommand(
+  input: string,
+  variant: ChairVariantDef,
+  partsState: PartsState,
+  accessoriesSupported: boolean,
+): AssistantCommandResult | null {
   const tokens = tokenize(input);
   const rawTokens = rawTokenize(input);
   const norm = normalize(input);
@@ -153,7 +188,14 @@ export function interpretCommand(input: string, variant: ChairVariantDef, partsS
   if (rawTokens.some((t) => REMOVE_VERBS.includes(t))) {
     const ids = findPartIds(tokens, variant);
     if (!ids.length) {
-      return { reply: "Je n'ai pas identifié quelle pièce retirer. Essaie par exemple « enlève les accoudoirs »." };
+      const accessoryIds = accessoriesSupported ? findAccessoryIds(tokens) : [];
+      if (accessoryIds.length) {
+        return {
+          reply: `J'ai enlevé ${joinList(accessoryLabelsFor(accessoryIds))}.`,
+          accessoryToggles: accessoryIds.map((id) => ({ id, enabled: false })),
+        };
+      }
+      return { reply: "Je n'ai pas identifié quelle pièce retirer. Essaie par exemple « enlève les accoudoirs » ou « enlève le sac à dos »." };
     }
     const removable = ids.filter((id) => variant.parts.find((p) => p.id === id)?.removable);
     const blocked = ids.filter((id) => !removable.includes(id));
@@ -170,7 +212,18 @@ export function interpretCommand(input: string, variant: ChairVariantDef, partsS
   if (rawTokens.some((t) => ADD_VERBS.includes(t))) {
     const ids = findPartIds(tokens, variant);
     if (!ids.length) {
-      return { reply: "Je n'ai pas identifié quelle pièce remettre. Essaie par exemple « remets les accoudoirs »." };
+      const accessoryIds = accessoriesSupported ? findAccessoryIds(tokens) : [];
+      if (accessoryIds.length) {
+        return {
+          reply: `J'ai ajouté ${joinList(accessoryLabelsFor(accessoryIds))}.`,
+          accessoryToggles: accessoryIds.map((id) => ({ id, enabled: true })),
+        };
+      }
+      return {
+        reply: accessoriesSupported
+          ? "Je n'ai pas identifié quoi ajouter. Essaie par exemple « remets les accoudoirs » pour une pièce du fauteuil, ou « ajoute un sac à dos » pour un accessoire."
+          : "Je n'ai pas identifié quelle pièce remettre. Essaie par exemple « remets les accoudoirs ».",
+      };
     }
     return { reply: `J'ai remis ${joinList(labelsFor(ids, variant))}.`, updates: ids.map((id) => ({ partId: id, changes: { visible: true } })) };
   }
@@ -249,7 +302,7 @@ const FAQ: FaqEntry[] = [
   {
     keywords: ['aide', 'comment ca marche', 'que peux tu faire', 'qu est ce que tu peux faire', 'commandes'],
     answer:
-      "Je peux modifier ton fauteuil (ex : « mets le dossier en bleu », « enlève les accoudoirs », « réinitialise tout ») et répondre à des questions courantes (choix du fauteuil, entretien, aides financières, export...). Je suis un assistant intégré au site, pas une IA connectée à Internet.",
+      "Je peux modifier ton fauteuil (ex : « mets le dossier en bleu », « enlève les accoudoirs », « réinitialise tout »), ajouter des accessoires (ex : « ajoute un sac à dos », « enlève le parapluie ») et répondre à des questions courantes (choix du fauteuil, entretien, aides financières, export...). Je suis un assistant intégré au site, pas une IA connectée à Internet.",
   },
 ];
 

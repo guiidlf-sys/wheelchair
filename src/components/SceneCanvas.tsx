@@ -2,11 +2,13 @@ import { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import type { Annotation, ChairVariantDef, ExportApi, PartsState, SelectedModel, Vec3 } from '../types';
+import type { AccessoryState, Annotation, ChairVariantDef, ExportApi, PartsState, SelectedModel, Vec3 } from '../types';
 import ProceduralWheelchair from './ProceduralWheelchair';
 import ImportedModel from './ImportedModel';
+import AccessoryModel from './AccessoryModel';
 import AnnotationPins from './AnnotationPins';
 import ExportBridge from './ExportBridge';
+import { ACCESSORIES } from '../data/accessories';
 
 interface Props {
   model: SelectedModel;
@@ -16,6 +18,7 @@ interface Props {
   importScale: number;
   annotationMode: boolean;
   annotations: Annotation[];
+  accessories: AccessoryState;
   onSurfaceClick: (point: Vec3) => void;
   onExportReady: (api: ExportApi) => void;
 }
@@ -28,6 +31,7 @@ export default function SceneCanvas({
   importScale,
   annotationMode,
   annotations,
+  accessories,
   onSurfaceClick,
   onExportReady,
 }: Props) {
@@ -72,6 +76,9 @@ export default function SceneCanvas({
               onSurfaceClick={onSurfaceClick}
             />
           )}
+          {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) => (
+            <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
+          ))}
         </group>
         <ContactShadows position={[0, 0, 0]} opacity={0.55} scale={4} blur={2.2} far={2} />
       </Suspense>
