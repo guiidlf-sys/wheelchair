@@ -34,6 +34,8 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .site-main {
@@ -103,9 +105,16 @@ button.secondary {
   align-items: center;
   justify-content: space-between;
   padding: 16px 32px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(245, 234, 217, 0.1);
   flex-wrap: wrap;
   gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: linear-gradient(180deg, rgba(35, 28, 23, 0.6), rgba(35, 28, 23, 0.35));
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
 .brand {
@@ -141,17 +150,48 @@ button.secondary {
   color: var(--accent);
 }
 
+.site-nav a:not(.nav-cta) {
+  padding: 6px 10px;
+  border-radius: 999px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.site-nav a:not(.nav-cta):hover {
+  background: rgba(245, 234, 217, 0.08);
+}
+
 .site-nav a.nav-cta {
+  position: relative;
+  overflow: hidden;
   background: var(--accent);
   color: var(--bg);
   font-weight: 700;
   padding: 8px 16px;
   border-radius: 999px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.15s;
+}
+
+.site-nav a.nav-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
 }
 
 .site-nav a.nav-cta:hover {
   background: var(--accent-hover);
   color: var(--bg);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(204, 151, 96, 0.4);
+}
+
+.site-nav a.nav-cta:hover::before {
+  left: 130%;
 }
 
 /* ---------- Home screen ---------- */
@@ -950,4 +990,298 @@ button.secondary {
     border-top: 1px solid var(--border);
     max-height: none;
   }
+}
+
+/* ---------- Skip link ---------- */
+
+.skip-link {
+  position: fixed;
+  top: -60px;
+  left: 12px;
+  z-index: 100;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ---------- Ambient animated background ---------- */
+/* Slow-drifting blurred blobs behind the translucent "liquid glass" header —
+   the header's blur is what makes them read as glass rather than flat panels. */
+
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-bg span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.35;
+  will-change: transform;
+}
+
+.ambient-bg span:nth-child(1) {
+  width: 42vw;
+  height: 42vw;
+  top: -10%;
+  left: -10%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  animation: ambient-drift-a 26s ease-in-out infinite alternate;
+}
+
+.ambient-bg span:nth-child(2) {
+  width: 36vw;
+  height: 36vw;
+  bottom: -12%;
+  right: -8%;
+  background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
+  animation: ambient-drift-b 32s ease-in-out infinite alternate;
+}
+
+.ambient-bg span:nth-child(3) {
+  width: 30vw;
+  height: 30vw;
+  top: 40%;
+  left: 55%;
+  background: radial-gradient(circle, var(--sidebar) 0%, transparent 70%);
+  animation: ambient-drift-c 38s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-drift-a {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(6vw, 8vh) scale(1.15); }
+}
+
+@keyframes ambient-drift-b {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-8vw, -6vh) scale(1.1); }
+}
+
+@keyframes ambient-drift-c {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-5vw, 6vh) scale(0.9); }
+}
+
+/* ---------- Accessibility menu ---------- */
+
+.a11y-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 50;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(35, 28, 23, 0.6);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(245, 234, 217, 0.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 20px rgba(0, 0, 0, 0.35);
+  font-size: 22px;
+  color: var(--text-h);
+  transition: transform 0.2s ease;
+}
+
+.a11y-toggle:hover {
+  transform: scale(1.06);
+  border-color: var(--accent);
+}
+
+.a11y-panel {
+  position: fixed;
+  bottom: 82px;
+  right: 20px;
+  z-index: 50;
+  width: 280px;
+  max-width: calc(100vw - 40px);
+  background: rgba(35, 28, 23, 0.78);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(245, 234, 217, 0.15);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 40px rgba(0, 0, 0, 0.4);
+  animation: a11y-panel-in 0.22s ease;
+}
+
+@keyframes a11y-panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.a11y-panel h2 {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.a11y-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.a11y-group legend {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.8;
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.a11y-segmented {
+  display: flex;
+  gap: 4px;
+}
+
+.a11y-segmented button {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 11px;
+  border-radius: 999px;
+}
+
+.a11y-segmented button.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.a11y-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-h);
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.a11y-reset {
+  width: 100%;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* ---------- Accessibility settings applied site-wide ---------- */
+
+body[data-motion='reduced'] .ambient-bg span,
+body[data-motion='reduced'] .site-nav a.nav-cta::before {
+  animation: none !important;
+}
+
+body[data-motion='reduced'] *,
+body[data-motion='reduced'] *::before,
+body[data-motion='reduced'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-bg span,
+  .site-nav a.nav-cta::before {
+    animation: none !important;
+  }
+
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Text size: zoom is scoped to plain HTML/CSS chrome only, never to
+   .editor-canvas — that element's size drives the WebGL/CSS3D/Flat2D 3D
+   view's resize logic, and it isn't a descendant of any selector below, so
+   the 3D view keeps its native scale regardless of this setting. */
+
+body[data-font-size='large'] .site-header,
+body[data-font-size='large'] .home-screen,
+body[data-font-size='large'] .catalog-screen,
+body[data-font-size='large'] .about-page,
+body[data-font-size='large'] .editor-side,
+body[data-font-size='large'] .assistant-bar,
+body[data-font-size='large'] .a11y-panel {
+  zoom: 1.15;
+}
+
+body[data-font-size='xlarge'] .site-header,
+body[data-font-size='xlarge'] .home-screen,
+body[data-font-size='xlarge'] .catalog-screen,
+body[data-font-size='xlarge'] .about-page,
+body[data-font-size='xlarge'] .editor-side,
+body[data-font-size='xlarge'] .assistant-bar,
+body[data-font-size='xlarge'] .a11y-panel {
+  zoom: 1.3;
+}
+
+body[data-font='dyslexia'],
+body[data-font='dyslexia'] input,
+body[data-font='dyslexia'] button {
+  font-family: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+}
+
+body[data-font='dyslexia'] h1,
+body[data-font='dyslexia'] h2,
+body[data-font='dyslexia'] h3 {
+  font-family: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* High contrast wins over the glass aesthetic — translucency/blur directly
+   reduces contrast, so this mode turns it off everywhere instead of trying
+   to keep both. */
+
+body[data-contrast='high'] {
+  --text: #ffffff;
+  --text-h: #ffffff;
+  --bg: #000000;
+  --panel-bg: #000000;
+  --border: #ffffff;
+  --sidebar: #000000;
+  --accent: #ffd75e;
+  --accent-hover: #ffe28a;
+  --accent-soft: #ffd75e;
+}
+
+body[data-contrast='high'] .ambient-bg {
+  display: none;
+}
+
+body[data-contrast='high'] .site-header,
+body[data-contrast='high'] .a11y-toggle,
+body[data-contrast='high'] .a11y-panel,
+body[data-contrast='high'] .panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #000000 !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: none !important;
+}
+
+body[data-contrast='high'] .site-nav a.nav-cta::before {
+  display: none;
+}
+
+body[data-contrast='high'] button,
+body[data-contrast='high'] input,
+body[data-contrast='high'] select {
+  border: 1px solid #ffffff !important;
 }

@@ -1,8 +1,17 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import AccessibilityMenu from './AccessibilityMenu';
 
 export default function Layout() {
   return (
     <>
+      <div className="ambient-bg" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <a href="#main-content" className="skip-link">
+        Aller au contenu principal
+      </a>
       <header className="site-header">
         <NavLink to="/" className="brand">
           Whells
@@ -18,9 +27,10 @@ export default function Layout() {
           </NavLink>
         </nav>
       </header>
-      <main className="site-main">
+      <main id="main-content" className="site-main" tabIndex={-1}>
         <Outlet />
       </main>
+      <AccessibilityMenu />
     </>
   );
 }

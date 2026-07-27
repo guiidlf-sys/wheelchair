@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
+import { AccessibilityProvider } from './utils/accessibility.tsx'
 
 const appCrashFallback = (
   <div style={{ padding: 40, textAlign: 'center', fontFamily: 'sans-serif' }}>
@@ -17,7 +18,9 @@ const appCrashFallback = (
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary fallback={appCrashFallback}>
-      <App />
+      <AccessibilityProvider>
+        <App />
+      </AccessibilityProvider>
     </ErrorBoundary>
   </StrictMode>,
 )
