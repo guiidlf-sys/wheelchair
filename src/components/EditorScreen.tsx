@@ -6,6 +6,8 @@ import ErrorBoundary from './ErrorBoundary';
 import AssistantBar from './AssistantBar';
 import CssFallbackScene from './CssFallbackScene';
 import Flat2DScene from './Flat2DScene';
+import RealisticPreview from './RealisticPreview';
+import RealisticPanel from './RealisticPanel';
 import PartsPanel from './PartsPanel';
 import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
@@ -13,6 +15,13 @@ import ExportPanel from './ExportPanel';
 import { describeModifications } from '../utils/modifications';
 import { hasWebGL } from '../utils/webgl';
 import { has3DTransformSupport } from '../utils/css3dSupport';
+
+const REALISTIC_CRASH_MESSAGE = (
+  <div className="preview-fallback large">
+    L'aperçu réaliste n'a pas pu se charger sur cet appareil. Reviens à la vue simplifiée avec le bouton
+    ci-dessus.
+  </div>
+);
 
 const NO_WEBGL_IMPORTED_MESSAGE = (
   <div className="preview-fallback large">
@@ -52,6 +61,9 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
 
   const [exportApi, setExportApi] = useState<ExportApi | null>(null);
 
+  const [showRealistic, setShowRealistic] = useState(false);
+  const [realisticTint, setRealisticTint] = useState('#5a6b7a');
+
   const chairName = variant ? variant.name : model.fileName ?? 'Modèle importé';
 
   const modifications = useMemo(() => {
@@ -89,6 +101,11 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
     setPendingPoint(null);
   };
 
+  const toggleRealistic = () => {
+    setExportApi(null);
+    setShowRealistic((v) => !v);
+  };
+
   return (
     <div className="editor-screen">
       <header className="editor-header">
@@ -96,6 +113,11 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
           ← Choisir un autre fauteuil
         </button>
         <h1>{chairName}</h1>
+        {webglAvailable && (
+          <button type="button" className="secondary" onClick={toggleRealistic}>
+            {showRealistic ? '← Retour à la personnalisation' : 'Voir un aperçu réaliste'}
+          </button>
+        )}
       </header>
 
       <AssistantBar
@@ -108,7 +130,9 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
 
       <div className="editor-body">
         <aside className="editor-side left">
-          {variant ? (
+          {showRealistic ? (
+            <RealisticPanel tint={realisticTint} onTintChange={setRealisticTint} />
+          ) : variant ? (
             <PartsPanel variant={variant} partsState={partsState} onChange={handlePartChange} onResetPart={handleResetPart} />
           ) : (
             <ImportControls
@@ -122,7 +146,11 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
         </aside>
 
         <main className="editor-canvas">
-          {webglAvailable ? (
+          {showRealistic ? (
+            <ErrorBoundary fallback={REALISTIC_CRASH_MESSAGE}>
+              <RealisticPreview tint={realisticTint} />
+            </ErrorBoundary>
+          ) : webglAvailable ? (
             <ErrorBoundary fallback={variant ? <CssFallbackScene variant={variant} partsState={partsState} /> : WEBGL_CRASH_IMPORTED_MESSAGE}>
               <SceneCanvas
                 model={model}
@@ -159,12 +187,12 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
             onCancelPending={() => setPendingPoint(null)}
             annotations={annotations}
             onDelete={(id) => setAnnotations((prev) => prev.filter((a) => a.id !== id))}
-            disabled={!webglAvailable}
+            disabled={!webglAvailable || showRealistic}
           />
           <ExportPanel
             chairName={chairName}
-            modifications={modifications}
-            annotations={annotations}
+            modifications={showRealistic ? [] : modifications}
+            annotations={showRealistic ? [] : annotations}
             exportApi={exportApi}
             canExportGLB={true}
             authorEmail={authorEmail}
