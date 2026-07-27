@@ -1,7 +1,9 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import AccessibilityMenu from './AccessibilityMenu';
 
 export default function Layout() {
+  const location = useLocation();
+
   return (
     <>
       <div className="ambient-bg" aria-hidden="true">
@@ -28,7 +30,12 @@ export default function Layout() {
         </nav>
       </header>
       <main id="main-content" className="site-main" tabIndex={-1}>
-        <Outlet />
+        {/* Keyed on pathname so this wrapper remounts (and its entrance
+            animation re-fires) on every top-level navigation and on first
+            load, without resetting state on in-page changes like ?variant=. */}
+        <div key={location.pathname} className="page-transition">
+          <Outlet />
+        </div>
       </main>
       <AccessibilityMenu />
     </>

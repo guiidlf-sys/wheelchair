@@ -41,6 +41,7 @@ export default function SceneCanvas({
   return (
     <Canvas
       shadows
+      dpr={[1, 1.5]}
       gl={{
         preserveDrawingBuffer: true,
         failIfMajorPerformanceCaveat: false,

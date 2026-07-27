@@ -1,5 +1,5 @@
-import { Suspense, useEffect, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { useGLTF, OrbitControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import type { AccessoryState } from '../types';
@@ -50,6 +50,34 @@ function Model({ tint }: ModelProps) {
 
 useGLTF.preload(MODEL_URL);
 
+/**
+ * Watches for WebGL context loss, which mobile GPUs under memory pressure
+ * (a detailed real mesh + shadows + a high device pixel ratio is a fairly
+ * heavy combination) can trigger without throwing a catchable JS error — the
+ * canvas just silently goes blank. Calling preventDefault() on the loss event
+ * is what tells the browser to attempt automatic recovery instead of leaving
+ * the context dead for good.
+ */
+function ContextWatcher({ onLost, onRestored }: { onLost: () => void; onRestored: () => void }) {
+  const { gl } = useThree();
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const handleLost = (e: Event) => {
+      e.preventDefault();
+      onLost();
+    };
+    canvas.addEventListener('webglcontextlost', handleLost, false);
+    canvas.addEventListener('webglcontextrestored', onRestored, false);
+    return () => {
+      canvas.removeEventListener('webglcontextlost', handleLost);
+      canvas.removeEventListener('webglcontextrestored', onRestored);
+    };
+  }, [gl, onLost, onRestored]);
+
+  return null;
+}
+
 interface Props {
   tint: string;
   accessories: AccessoryState;
@@ -61,37 +89,54 @@ interface Props {
  * single material — no separate parts to color/remove individually, unlike
  * the procedural workspace — so this is a look-only preview with one overall
  * tint, not a replacement for the customizable editor.
+ *
+ * dpr is capped and shadows kept small on purpose: this view combines a
+ * denser real mesh with the procedural editor's own load, and uncapped
+ * device pixel ratio on high-DPI tablets has been the most likely trigger
+ * for GPU memory pressure crashes on constrained mobile hardware.
  */
 export default function RealisticPreview({ tint, accessories }: Props) {
+  const [contextLost, setContextLost] = useState(false);
+
   return (
-    <Canvas
-      shadows
-      camera={{ position: [1.6, 1.2, 1.8], fov: 40 }}
-      gl={{
-        preserveDrawingBuffer: true,
-        failIfMajorPerformanceCaveat: false,
-        antialias: false,
-        powerPreference: 'default',
-      }}
-    >
-      <color attach="background" args={['#3a2f26']} />
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[3, 5, 2]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
-      <directionalLight position={[-3, 2, -2]} intensity={0.6} />
-      <directionalLight position={[0, 2, -4]} intensity={0.4} />
-      <Suspense fallback={null}>
-        <Model tint={tint} />
-        {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) =>
-          def.kind === 'procedural' ? (
-            <ProceduralAccessory key={def.id} def={def} tint={accessories[def.id].tint} />
-          ) : (
-            <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
-          ),
-        )}
-        <ContactShadows position={[0, 0, 0]} opacity={0.5} scale={4} blur={2.2} far={2} />
-      </Suspense>
-      <gridHelper args={[6, 24, '#7a6650', '#5a4a3a']} />
-      <OrbitControls enablePan minDistance={0.6} maxDistance={5} target={[0, 0.4, 0]} />
-    </Canvas>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <Canvas
+        shadows
+        dpr={[1, 1.5]}
+        camera={{ position: [1.6, 1.2, 1.8], fov: 40 }}
+        gl={{
+          preserveDrawingBuffer: true,
+          failIfMajorPerformanceCaveat: false,
+          antialias: false,
+          powerPreference: 'default',
+        }}
+      >
+        <ContextWatcher onLost={() => setContextLost(true)} onRestored={() => setContextLost(false)} />
+        <color attach="background" args={['#3a2f26']} />
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[3, 5, 2]} intensity={1.5} castShadow shadow-mapSize={[512, 512]} />
+        <directionalLight position={[-3, 2, -2]} intensity={0.6} />
+        <directionalLight position={[0, 2, -4]} intensity={0.4} />
+        <Suspense fallback={null}>
+          <Model tint={tint} />
+          {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) =>
+            def.kind === 'procedural' ? (
+              <ProceduralAccessory key={def.id} def={def} tint={accessories[def.id].tint} />
+            ) : (
+              <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
+            ),
+          )}
+          <ContactShadows position={[0, 0, 0]} opacity={0.5} scale={4} blur={2.2} far={2} />
+        </Suspense>
+        <gridHelper args={[6, 24, '#7a6650', '#5a4a3a']} />
+        <OrbitControls enablePan minDistance={0.6} maxDistance={5} target={[0, 0.4, 0]} />
+      </Canvas>
+      {contextLost && (
+        <div className="preview-fallback large" style={{ position: 'absolute', inset: 0 }}>
+          L'affichage 3D a été interrompu par cet appareil (mémoire graphique limitée). Reconnexion en cours…
+          si rien ne se passe après quelques secondes, reviens à la vue simplifiée avec le bouton ci-dessus.
+        </div>
+      )}
+    </div>
   );
 }
