@@ -6,6 +6,7 @@ import type { AccessoryState, Annotation, ChairVariantDef, ExportApi, PartsState
 import ProceduralWheelchair from './ProceduralWheelchair';
 import ImportedModel from './ImportedModel';
 import AccessoryModel from './AccessoryModel';
+import ProceduralAccessory from './ProceduralAccessory';
 import AnnotationPins from './AnnotationPins';
 import ExportBridge from './ExportBridge';
 import { ACCESSORIES } from '../data/accessories';
@@ -76,9 +77,13 @@ export default function SceneCanvas({
               onSurfaceClick={onSurfaceClick}
             />
           )}
-          {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) => (
-            <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
-          ))}
+          {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) =>
+            def.kind === 'procedural' ? (
+              <ProceduralAccessory key={def.id} def={def} tint={accessories[def.id].tint} />
+            ) : (
+              <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
+            ),
+          )}
         </group>
         <ContactShadows position={[0, 0, 0]} opacity={0.55} scale={4} blur={2.2} far={2} />
       </Suspense>

@@ -5,7 +5,7 @@ export default function Layout() {
     <>
       <header className="site-header">
         <NavLink to="/" className="brand">
-          Sur-mesure
+          Whells
         </NavLink>
         <nav className="site-nav">
           <NavLink to="/" end>

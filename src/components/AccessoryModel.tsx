@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import type { AccessoryDef } from '../data/accessories';
+import type { ModelAccessoryDef } from '../data/accessories';
 
 interface Props {
-  def: AccessoryDef;
+  def: ModelAccessoryDef;
   tint: string;
 }
 

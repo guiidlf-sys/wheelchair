@@ -4,6 +4,7 @@ import { useGLTF, OrbitControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import type { AccessoryState } from '../types';
 import AccessoryModel from './AccessoryModel';
+import ProceduralAccessory from './ProceduralAccessory';
 import { ACCESSORIES } from '../data/accessories';
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models/wheelchair-realistic.glb`;
@@ -80,9 +81,13 @@ export default function RealisticPreview({ tint, accessories }: Props) {
       <directionalLight position={[0, 2, -4]} intensity={0.4} />
       <Suspense fallback={null}>
         <Model tint={tint} />
-        {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) => (
-          <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
-        ))}
+        {ACCESSORIES.filter((def) => accessories[def.id]?.enabled).map((def) =>
+          def.kind === 'procedural' ? (
+            <ProceduralAccessory key={def.id} def={def} tint={accessories[def.id].tint} />
+          ) : (
+            <AccessoryModel key={def.id} def={def} tint={accessories[def.id].tint} />
+          ),
+        )}
         <ContactShadows position={[0, 0, 0]} opacity={0.5} scale={4} blur={2.2} far={2} />
       </Suspense>
       <gridHelper args={[6, 24, '#7a6650', '#5a4a3a']} />
