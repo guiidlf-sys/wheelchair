@@ -42,7 +42,7 @@ export default function SceneCanvas({
         antialias: false,
         powerPreference: 'default',
       }}
-      camera={{ position: [1.4, 1.1, 1.6], fov: 40 }}
+      camera={{ position: [1.9, 1.4, 2.2], fov: 50 }}
       className={annotationMode ? 'annotation-cursor' : undefined}
     >
       <color attach="background" args={['#3a2f26']} />
@@ -79,7 +79,7 @@ export default function SceneCanvas({
       <AnnotationPins annotations={annotations} />
 
       <gridHelper args={[6, 24, '#7a6650', '#5a4a3a']} />
-      <OrbitControls enablePan minDistance={0.6} maxDistance={5} target={[0, 0.4, 0]} />
+      <OrbitControls enablePan minDistance={0.6} maxDistance={5} target={[0, 0.5, 0]} />
 
       <ExportBridge modelGroupRef={modelGroupRef} onReady={onExportReady} />
     </Canvas>
