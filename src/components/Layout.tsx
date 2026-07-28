@@ -3,14 +3,21 @@ import AccessibilityMenu from './AccessibilityMenu';
 
 export default function Layout() {
   const location = useLocation();
+  // The animated blurred background is pure decoration best suited to the
+  // marketing-style pages. Skipping it on the editor keeps the GPU/compositor
+  // budget free for the WebGL 3D view, which already has plenty to render on
+  // its own — running both at once is what caused real lag on constrained
+  // tablets.
+  const showAmbientBg = !location.pathname.startsWith('/personnalisation');
 
   return (
     <>
-      <div className="ambient-bg" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
+      {showAmbientBg && (
+        <div className="ambient-bg" aria-hidden="true">
+          <span />
+          <span />
+        </div>
+      )}
       <a href="#main-content" className="skip-link">
         Aller au contenu principal
       </a>
