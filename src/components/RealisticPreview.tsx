@@ -6,6 +6,7 @@ import type { AccessoryState } from '../types';
 import AccessoryModel from './AccessoryModel';
 import ProceduralAccessory from './ProceduralAccessory';
 import { ACCESSORIES } from '../data/accessories';
+import { useForceInitialResize } from '../utils/useForceInitialResize';
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models/wheelchair-realistic.glb`;
 const TARGET_HEIGHT = 1;
@@ -97,6 +98,7 @@ interface Props {
  */
 export default function RealisticPreview({ tint, accessories }: Props) {
   const [contextLost, setContextLost] = useState(false);
+  useForceInitialResize();
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

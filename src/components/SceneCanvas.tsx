@@ -10,6 +10,7 @@ import ProceduralAccessory from './ProceduralAccessory';
 import AnnotationPins from './AnnotationPins';
 import ExportBridge from './ExportBridge';
 import { ACCESSORIES } from '../data/accessories';
+import { useForceInitialResize } from '../utils/useForceInitialResize';
 
 interface Props {
   model: SelectedModel;
@@ -37,6 +38,7 @@ export default function SceneCanvas({
   onExportReady,
 }: Props) {
   const modelGroupRef = useRef<THREE.Group>(null);
+  useForceInitialResize();
 
   return (
     <Canvas
