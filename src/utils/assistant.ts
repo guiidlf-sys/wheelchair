@@ -63,7 +63,7 @@ function buildPartIndex(variant: ChairVariantDef): PartIndexEntry[] {
   });
 }
 
-function findPartIds(tokens: string[], variant: ChairVariantDef): string[] {
+function matchPartIndex(tokens: string[], variant: ChairVariantDef, mode: 'strict' | 'relaxed'): string[] {
   const index = buildPartIndex(variant);
   const wantSide: 'left' | 'right' | undefined = tokens.includes('gauche')
     ? 'left'
@@ -71,15 +71,21 @@ function findPartIds(tokens: string[], variant: ChairVariantDef): string[] {
       ? 'right'
       : undefined;
 
-  let matches = index.filter((p) => p.base.length > 0 && p.base.every((t) => tokens.includes(t)));
-  if (matches.length === 0) {
-    matches = index.filter((p) => p.base.some((t) => t.length >= 4 && tokens.includes(t)));
-  }
+  let matches =
+    mode === 'strict'
+      ? index.filter((p) => p.base.length > 0 && p.base.every((t) => tokens.includes(t)))
+      : index.filter((p) => p.base.some((t) => t.length >= 4 && tokens.includes(t)));
+
   if (wantSide) {
     const sideFiltered = matches.filter((p) => !p.side || p.side === wantSide);
     if (sideFiltered.length) matches = sideFiltered;
   }
   return matches.map((p) => p.id);
+}
+
+function findPartIds(tokens: string[], variant: ChairVariantDef): string[] {
+  const strict = matchPartIndex(tokens, variant, 'strict');
+  return strict.length ? strict : matchPartIndex(tokens, variant, 'relaxed');
 }
 
 function labelsFor(ids: string[], variant: ChairVariantDef): string[] {
@@ -101,13 +107,51 @@ const ACCESSORY_INDEX: AccessoryIndexEntry[] = ACCESSORIES.map((acc) => ({
   base: tokenize(acc.label).filter((t) => t.length >= 2 && !STOPWORDS.has(t)),
 }));
 
-/** Same strict-then-relaxed matching strategy as findPartIds(), applied to the fixed accessory library instead of a per-variant part list. */
-function findAccessoryIds(tokens: string[]): string[] {
-  let matches = ACCESSORY_INDEX.filter((a) => a.base.length > 0 && a.base.every((t) => tokens.includes(t)));
-  if (matches.length === 0) {
-    matches = ACCESSORY_INDEX.filter((a) => a.base.some((t) => t.length >= 4 && tokens.includes(t)));
-  }
+function matchAccessoryIndex(tokens: string[], mode: 'strict' | 'relaxed'): string[] {
+  const matches =
+    mode === 'strict'
+      ? ACCESSORY_INDEX.filter((a) => a.base.length > 0 && a.base.every((t) => tokens.includes(t)))
+      : ACCESSORY_INDEX.filter((a) => a.base.some((t) => t.length >= 4 && tokens.includes(t)));
   return matches.map((a) => a.id);
+}
+
+interface CommandTarget {
+  kind: 'part' | 'accessory';
+  ids: string[];
+}
+
+/**
+ * Resolves an add/remove target across BOTH the chair-part list and the
+ * accessory library, strict matches first in either domain before ever
+ * falling back to relaxed (single-shared-word) matching in either domain.
+ *
+ * This matters because relaxed matching alone is ambiguous across domains:
+ * e.g. "avant" is a shared relaxed-match word between the caster parts
+ * ("Roulette avant gauche/droite") and the "Panier avant" accessory, so a
+ * part-first / relaxed-first search would let "enlève le panier avant"
+ * get hijacked by the (irrelevant) casters purely because relaxed part
+ * matching was tried before accessory matching got a chance at all — even
+ * though "panier avant" is an exact accessory name. Trying strict matches
+ * in both domains before relaxed matches in either domain fixes that.
+ */
+function resolveTarget(tokens: string[], variant: ChairVariantDef, accessoriesSupported: boolean): CommandTarget | null {
+  const strictParts = matchPartIndex(tokens, variant, 'strict');
+  if (strictParts.length) return { kind: 'part', ids: strictParts };
+
+  if (accessoriesSupported) {
+    const strictAccessories = matchAccessoryIndex(tokens, 'strict');
+    if (strictAccessories.length) return { kind: 'accessory', ids: strictAccessories };
+  }
+
+  const relaxedParts = matchPartIndex(tokens, variant, 'relaxed');
+  if (relaxedParts.length) return { kind: 'part', ids: relaxedParts };
+
+  if (accessoriesSupported) {
+    const relaxedAccessories = matchAccessoryIndex(tokens, 'relaxed');
+    if (relaxedAccessories.length) return { kind: 'accessory', ids: relaxedAccessories };
+  }
+
+  return null;
 }
 
 function accessoryLabelsFor(ids: string[]): string[] {
@@ -186,17 +230,17 @@ export function interpretCommand(
   }
 
   if (rawTokens.some((t) => REMOVE_VERBS.includes(t))) {
-    const ids = findPartIds(tokens, variant);
-    if (!ids.length) {
-      const accessoryIds = accessoriesSupported ? findAccessoryIds(tokens) : [];
-      if (accessoryIds.length) {
-        return {
-          reply: `J'ai enlevé ${joinList(accessoryLabelsFor(accessoryIds))}.`,
-          accessoryToggles: accessoryIds.map((id) => ({ id, enabled: false })),
-        };
-      }
+    const target = resolveTarget(tokens, variant, accessoriesSupported);
+    if (!target) {
       return { reply: "Je n'ai pas identifié quelle pièce retirer. Essaie par exemple « enlève les accoudoirs » ou « enlève le sac à dos »." };
     }
+    if (target.kind === 'accessory') {
+      return {
+        reply: `J'ai enlevé ${joinList(accessoryLabelsFor(target.ids))}.`,
+        accessoryToggles: target.ids.map((id) => ({ id, enabled: false })),
+      };
+    }
+    const ids = target.ids;
     const removable = ids.filter((id) => variant.parts.find((p) => p.id === id)?.removable);
     const blocked = ids.filter((id) => !removable.includes(id));
     if (!removable.length) {
@@ -209,25 +253,11 @@ export function interpretCommand(
     return { reply, updates: removable.map((id) => ({ partId: id, changes: { visible: false } })) };
   }
 
-  if (rawTokens.some((t) => ADD_VERBS.includes(t))) {
-    const ids = findPartIds(tokens, variant);
-    if (!ids.length) {
-      const accessoryIds = accessoriesSupported ? findAccessoryIds(tokens) : [];
-      if (accessoryIds.length) {
-        return {
-          reply: `J'ai ajouté ${joinList(accessoryLabelsFor(accessoryIds))}.`,
-          accessoryToggles: accessoryIds.map((id) => ({ id, enabled: true })),
-        };
-      }
-      return {
-        reply: accessoriesSupported
-          ? "Je n'ai pas identifié quoi ajouter. Essaie par exemple « remets les accoudoirs » pour une pièce du fauteuil, ou « ajoute un sac à dos » pour un accessoire."
-          : "Je n'ai pas identifié quelle pièce remettre. Essaie par exemple « remets les accoudoirs ».",
-      };
-    }
-    return { reply: `J'ai remis ${joinList(labelsFor(ids, variant))}.`, updates: ids.map((id) => ({ partId: id, changes: { visible: true } })) };
-  }
-
+  // Checked before ADD_VERBS on purpose: "ajoute" is itself an add-verb, so
+  // without this ordering a color instruction like "ajoute du bleu sur le
+  // dossier" would be swallowed by the ADD branch's part search (which
+  // matches "dossier" and just no-ops its visibility) before the color word
+  // was ever looked at.
   const color = detectColor(norm);
   if (color) {
     let ids = findPartIds(tokens, variant);
@@ -242,6 +272,27 @@ export function interpretCommand(
     return {
       reply: `J'ai mis ${joinList(labelsFor(ids, variant))} en ${color.name}.`,
       updates: ids.map((id) => ({ partId: id, changes: { color: color.hex } })),
+    };
+  }
+
+  if (rawTokens.some((t) => ADD_VERBS.includes(t))) {
+    const target = resolveTarget(tokens, variant, accessoriesSupported);
+    if (!target) {
+      return {
+        reply: accessoriesSupported
+          ? "Je n'ai pas identifié quoi ajouter. Essaie par exemple « remets les accoudoirs » pour une pièce du fauteuil, ou « ajoute un sac à dos » pour un accessoire."
+          : "Je n'ai pas identifié quelle pièce remettre. Essaie par exemple « remets les accoudoirs ».",
+      };
+    }
+    if (target.kind === 'accessory') {
+      return {
+        reply: `J'ai ajouté ${joinList(accessoryLabelsFor(target.ids))}.`,
+        accessoryToggles: target.ids.map((id) => ({ id, enabled: true })),
+      };
+    }
+    return {
+      reply: `J'ai remis ${joinList(labelsFor(target.ids, variant))}.`,
+      updates: target.ids.map((id) => ({ partId: id, changes: { visible: true } })),
     };
   }
 

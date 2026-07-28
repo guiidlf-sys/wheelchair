@@ -18,6 +18,18 @@ export default function PersonalizationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  // Imported files are handed to us as an object URL (see CatalogScreen);
+  // release it once this specific model is no longer the active one —
+  // replaced by another selection, or this page unmounts — otherwise every
+  // import leaks its blob for the rest of the tab's lifetime.
+  useEffect(() => {
+    if (model?.kind !== 'imported' || !model.fileUrl) return;
+    const url = model.fileUrl;
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [model]);
+
   if (!model) {
     return <CatalogScreen onSelect={setModel} onBack={() => navigate('/')} />;
   }
