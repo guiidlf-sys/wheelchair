@@ -26,10 +26,24 @@ const defaultAccessoryState = (): AccessoryState => {
   return state;
 };
 
-const REALISTIC_CRASH_MESSAGE = (
+/** Renders a caught error as a short, readable line — so a device without accessible devtools (most tablets) can still show/screenshot a real diagnostic detail instead of a dead end. */
+function describeError(error: unknown): string {
+  if (error instanceof Error) return `${error.name}: ${error.message}`;
+  if (typeof error === 'string') return error;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+const REALISTIC_CRASH_MESSAGE = (error: unknown) => (
   <div className="preview-fallback large">
-    L'aperçu réaliste n'a pas pu se charger sur cet appareil. Reviens à la vue simplifiée avec le bouton
-    ci-dessus.
+    <p>
+      L'aperçu réaliste n'a pas pu se charger sur cet appareil. Reviens à la vue simplifiée avec le bouton
+      ci-dessus.
+    </p>
+    <p className="error-detail">Détail technique : {describeError(error)}</p>
   </div>
 );
 
@@ -41,10 +55,13 @@ const NO_WEBGL_IMPORTED_MESSAGE = (
   </div>
 );
 
-const WEBGL_CRASH_IMPORTED_MESSAGE = (
+const WEBGL_CRASH_IMPORTED_MESSAGE = (error: unknown) => (
   <div className="preview-fallback large">
-    La vue 3D a démarré mais a rencontré une erreur sur cet appareil (code E2). Essaie de recharger la page ou
-    un autre navigateur.
+    <p>
+      La vue 3D a démarré mais a rencontré une erreur sur cet appareil (code E2). Essaie de recharger la page ou
+      un autre navigateur.
+    </p>
+    <p className="error-detail">Détail technique : {describeError(error)}</p>
   </div>
 );
 
