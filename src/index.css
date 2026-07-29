@@ -618,6 +618,42 @@ button.secondary {
   margin: 0;
 }
 
+.diagnostics {
+  position: relative;
+  margin-left: auto;
+}
+
+.diagnostics .secondary.small {
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.diagnostics-report {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: min(420px, 90vw);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.diagnostics-report pre {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-h);
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  margin: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
 .assistant-bar {
   border-bottom: 1px solid var(--border);
   padding: 14px 20px;

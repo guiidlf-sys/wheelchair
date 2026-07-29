@@ -14,6 +14,7 @@ import PartsPanel from './PartsPanel';
 import ImportControls from './ImportControls';
 import AnnotationPanel from './AnnotationPanel';
 import ExportPanel from './ExportPanel';
+import DiagnosticsPanel from './DiagnosticsPanel';
 import { describeModifications } from '../utils/modifications';
 import { hasWebGL } from '../utils/webgl';
 import { has3DTransformSupport } from '../utils/css3dSupport';
@@ -159,6 +160,7 @@ export default function EditorScreen({ model, onBack, authorEmail }: Props) {
             {showRealistic ? '← Retour à la personnalisation' : 'Voir un aperçu réaliste'}
           </button>
         )}
+        <DiagnosticsPanel />
       </header>
 
       <AssistantBar
